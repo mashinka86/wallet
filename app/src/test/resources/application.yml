@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: wallet
+  data.mongodb:
+    host: localhost
+    port: 27017
+    database: wallet
+
+server.port: 8888
+
+kafka:
+  bootstrapAddress: localhost:9092
+  topic: wallet.transactions
+  group: transactions-1
+
+

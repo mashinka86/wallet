@@ -1,0 +1,92 @@
+version: '3.6'
+services:
+  wallet:
+    image: 'wallet'
+    ports:
+      - 8888:8888
+    depends_on:
+    - broker
+    - mongo1
+    networks:
+      - localnet
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.3.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - localnet
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-enterprise-kafka:5.3.0
+    hostname: broker
+    container_name: broker
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    networks:
+      - localnet
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+
+  # MongoDB Replica Set
+  mongo1:
+    image: "mongo:4.0-xenial"
+    container_name: mongo1
+    command: --replSet rs0 --smallfiles --oplogSize 128
+    volumes:
+      - rs1:/data/db
+    networks:
+      - localnet
+    ports:
+      - "27017:27017"
+    restart: always
+  mongo2:
+    image: "mongo:4.0-xenial"
+    container_name: mongo2
+    command: --replSet rs0 --smallfiles --oplogSize 128
+    volumes:
+      - rs2:/data/db
+    networks:
+      - localnet
+    ports:
+      - "27018:27017"
+    restart: always
+  mongo3:
+    image: "mongo:4.0-xenial"
+    container_name: mongo3
+    command: --replSet rs0 --smallfiles --oplogSize 128
+    volumes:
+      - rs3:/data/db
+    networks:
+      - localnet
+    ports:
+      - "27019:27017"
+    restart: always
+
+networks:
+  localnet:
+    attachable: true
+
+volumes:
+  rs1:
+  rs2:
+  rs3:
